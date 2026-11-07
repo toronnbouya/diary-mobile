@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.github.com; img-src 'self' data:; style-src 'self'; script-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#b5562b">
+<title>日記</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <button id="prev" class="nav" aria-label="前の日">◀</button>
+  <label class="datebox">
+    <span id="date-label"></span>
+    <input type="date" id="date-input" aria-label="日付を選ぶ">
+  </label>
+  <button id="next" class="nav" aria-label="次の日">▶</button>
+</header>
+
+<main>
+  <!-- 書く -->
+  <section id="view-write" class="view active">
+    <textarea id="text" placeholder="いま思ったこと、あったこと、学んだこと…ひとことでOK。&#10;&#10;送ったメモは、PCの日記のこの日付の末尾に「📱 時刻」付きで入ります。"></textarea>
+    <div class="row">
+      <span id="status" class="status" role="status" aria-live="polite"></span>
+      <button id="send" class="primary">送る</button>
+    </div>
+    <div id="outbox" class="outbox"></div>
+    <h3 class="sub">この日に送ったメモ</h3>
+    <div id="sent" class="notes"><p class="muted">まだありません</p></div>
+  </section>
+
+  <!-- 読む -->
+  <section id="view-read" class="view">
+    <div class="row"><span class="muted small" id="read-info"></span><button id="reload" class="ghost">↻ 再読み込み</button></div>
+    <div id="ai" class="ai"></div>
+    <div id="body" class="body"></div>
+    <div id="waiting"></div>
+  </section>
+
+  <!-- 設定 -->
+  <section id="view-settings" class="view">
+    <h2>最初の設定（1回だけ）</h2>
+    <ol class="guide">
+      <li>GitHub にログインした Chrome で <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">トークン作成ページ</a> を開く</li>
+      <li>次のとおり入力して、いちばん下の <b>Generate token</b> を押す
+        <ul>
+          <li>Token name: <code>日記スマホ</code></li>
+          <li>Expiration: 好きな期間（期限が来たら、ここでもう一度作って貼り直す）</li>
+          <li>Repository access: <b>Only select repositories</b> → 日記のリポジトリだけを選ぶ</li>
+          <li>Permissions → Repository permissions → <b>Contents</b> を <b>Read and write</b></li>
+        </ul>
+      </li>
+      <li>表示されたトークン（<code>github_pat_</code> で始まる文字列）をコピーして、下に貼る</li>
+    </ol>
+    <label class="field">日記のリポジトリ（ユーザー名/リポジトリ名）
+      <input id="repo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例: yourname/diary">
+    </label>
+    <label class="field">トークン
+      <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+    </label>
+    <details>
+      <summary>詳細設定</summary>
+      <label class="field">ブランチ <input id="branch" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="main"></label>
+      <label class="field">日付の切り替え時刻（この時刻より前は前日の日記）<input id="daystart" type="number" min="0" max="12" placeholder="4"></label>
+    </details>
+    <div class="row"><button id="save-settings" class="primary">保存して接続テスト</button></div>
+    <p id="settings-status" class="status"></p>
+    <h3 class="sub">ホーム画面に置く</h3>
+    <p class="muted small">Chrome の右上「︙」→「ホーム画面に追加」（または「アプリをインストール」）。次からはアイコン1つで開けます。</p>
+    <h3 class="sub">この端末から消す</h3>
+    <p class="muted small">スマホを手放すときなど。トークンと未送信メモをこの端末から削除します（GitHub 側のトークンも <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">トークン一覧</a> で削除してください）。</p>
+    <button id="forget" class="ghost danger">この端末から消す</button>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button class="tab active" data-view="write" aria-label="書く">✏️<span>書く</span></button>
+  <button class="tab" data-view="read" aria-label="読む">📖<span>読む</span></button>
+  <button class="tab" data-view="settings" aria-label="設定">⚙️<span>設定</span></button>
+</nav>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>
