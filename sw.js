@@ -1,5 +1,5 @@
 // 画面ファイルだけをキャッシュして、電波が無くても開けるようにする（日記の中身や GitHub への通信はキャッシュしない）
-const CACHE = "diary-mobile-v1";
+const CACHE = "diary-mobile-v2";
 const SHELL = ["./", "index.html", "app.js", "style.css", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {

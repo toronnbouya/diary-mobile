@@ -24,6 +24,7 @@
 <main>
   <!-- 書く -->
   <section id="view-write" class="view active">
+    <div id="expiry-note" class="notice" role="status"></div>
     <textarea id="text" placeholder="いま思ったこと、あったこと、学んだこと…ひとことでOK。&#10;&#10;送ったメモは、PCの日記のこの日付の末尾に「📱 時刻」付きで入ります。"></textarea>
     <div class="row">
       <span id="status" class="status" role="status" aria-live="polite"></span>
@@ -50,7 +51,7 @@
       <li>次のとおり入力して、いちばん下の <b>Generate token</b> を押す
         <ul>
           <li>Token name: <code>日記スマホ</code></li>
-          <li>Expiration: 好きな期間（期限が来たら、ここでもう一度作って貼り直す）</li>
+          <li>Expiration: 好きな期間（期限が来たら、ここでもう一度作って貼り直す。選んだ期限の日付を下の「トークンの期限」にも入れておくと、切れる2週間前からこの画面で知らせます）</li>
           <li>Repository access: <b>Only select repositories</b> → 日記のリポジトリだけを選ぶ</li>
           <li>Permissions → Repository permissions → <b>Contents</b> を <b>Read and write</b></li>
         </ul>
@@ -62,6 +63,9 @@
     </label>
     <label class="field">トークン
       <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+    </label>
+    <label class="field">トークンの期限（任意。GitHub で選んだ Expiration の日付。2週間前から知らせます）
+      <input id="expiry" type="date">
     </label>
     <details>
       <summary>詳細設定</summary>

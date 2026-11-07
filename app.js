@@ -200,15 +200,38 @@ async function loadRead() {
   } catch (e) { if (e.status !== 404) waiting.append(el("p", "muted small", "取り込み待ちの確認に失敗: " + e.message)); }
 }
 
+// ---------- トークンの期限 ----------
+const EXPIRY_WARN_DAYS = 14;
+function expiryDays() {
+  const v = LS.get("tokenExpiry");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+  // 期限日の終わりまでを「残り」とみなす
+  return Math.ceil((new Date(v + "T23:59:59").getTime() - Date.now()) / 86400e3);
+}
+function renderExpiry() {
+  const n = $("#expiry-note"), days = expiryDays();
+  n.replaceChildren(); n.className = "notice";
+  if (days === null || days > EXPIRY_WARN_DAYS) return;
+  const v = LS.get("tokenExpiry").replace(/-/g, "/");
+  n.textContent = days < 0
+    ? `⚠ トークンの期限（${v}）が過ぎています。メモはこの端末に溜まり、送れません。GitHub で作り直して「設定」に貼り直してください。`
+    : `⚠ トークンの期限（${v}）が${days === 0 ? "今日" : `あと${days}日`}で切れます。GitHub で作り直して「設定」に貼り直してください。`;
+  if (days < 0) n.classList.add("err");
+  const b = el("button", "ghost small", "設定を開く"); b.onclick = () => switchView("settings"); n.append(b);
+}
+
 // ---------- 設定 ----------
 function loadSettings() {
   $("#repo").value = LS.get("repo"); $("#token").value = LS.get("token");
+  $("#expiry").value = LS.get("tokenExpiry");
   $("#branch").value = LS.get("branch"); $("#daystart").value = LS.get("dayStart", "");
 }
 async function saveSettings() {
   const repo = $("#repo").value.trim().replace(/^https:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/$/, "");
   if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) return toast("リポジトリは「ユーザー名/リポジトリ名」の形で入れてください", true);
   LS.set("repo", repo); LS.set("token", $("#token").value.trim());
+  const ex = $("#expiry").value; ex ? LS.set("tokenExpiry", ex) : LS.del("tokenExpiry");
+  renderExpiry();
   LS.set("branch", $("#branch").value.trim());
   const ds = $("#daystart").value.trim(); ds === "" ? LS.del("dayStart") : LS.set("dayStart", String(Math.min(12, Math.max(0, Number(ds) || 0))));
   $("#repo").value = repo;
@@ -223,8 +246,8 @@ async function saveSettings() {
 function forget() {
   const n = outbox().length;
   if (!confirm(`この端末からトークン・設定・下書き${n ? `・未送信メモ${n}件` : ""}を消します。よろしいですか？`)) return;
-  ["repo", "token", "branch", "dayStart", "draft", "outbox", "sent", "apiBase"].forEach(LS.del);
-  loadSettings(); renderWrite(); toast("この端末から消しました");
+  ["repo", "token", "tokenExpiry", "branch", "dayStart", "draft", "outbox", "sent", "apiBase"].forEach(LS.del);
+  loadSettings(); renderWrite(); renderExpiry(); toast("この端末から消しました");
 }
 
 // ---------- 画面 ----------
@@ -258,10 +281,12 @@ function init() {
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) return;
     if (S.date !== logicalToday() && !$("#text").value.trim()) setDate(logicalToday());  // 翌日に開き直したら今日へ
+    renderExpiry();
     flush();
   });
   $("#text").value = LS.get("draft");
   setDate(logicalToday());
+  renderExpiry();
   if (!cfg().repo || !cfg().token) switchView("settings");
   else flush();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
